@@ -1,65 +1,97 @@
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import au from './utils/au.json'
 import {useEffect, useState} from 'react';
 import axios from 'axios';
 import './App.css'
 
 const App = () => {
   const currentDay = new Date().toLocaleDateString("en-AU", {weekday: "long", month: "long", day: "numeric"});
+
   const [location, setLocation] = useState("");
   const [weather, setWeather] = useState({});
   const [forecast, setForecast] = useState([]);
+  const [cityNames] = useState([]);
+  const [showBtn, setShowBtn] = useState(false)
+
   const weatherURL = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=213c54a68946c8215cd53d5cacf1c427&units=metric`;
   const lat = weather.coord ? weather.coord.lat : null;
   const lon = weather.coord ? weather.coord.lon : null;
   const forecastURL = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&units=metric&appid=213c54a68946c8215cd53d5cacf1c427&exclude=current,minutely,hourly,alerts`;
 
-  const handleSearch = () => {
-      try {
-        axios.get(weatherURL).then((response) => {
-          setWeather(response.data)
-        })
-      } catch (error) {
-        console.error("Error fetching weather data:", error)
-      }
-      setLocation("")
+  const data = au;
+
+  for(let i = 0; i < data.length; i++){
+    cityNames.push(data[i].city, data[i].admin_name)
   };
 
-  const handleEnter = (e) => {
-    if(e.key === "Enter"){
-      handleSearch();
-    } else return
+  const onClick = (city, admin) => {
+    setLocation(`${city}, ${admin}`)
+    setShowBtn(!showBtn)
+  };
+
+  const handleSearch = () => {
+      axios.get(weatherURL)
+      .then((response) => {
+        setWeather(response.data)
+        setLocation("")
+      })
+      .catch(error => {
+        console.error("Error fetching weather data:", error)
+      });
+    setShowBtn(!showBtn)
   };
 
   useEffect(() => {
     const updateForecast = () => {
-      if (lat && lon) {
-        try {
-          axios.get(forecastURL).then((response) => {
-            const threeDayForecast = response.data.daily.slice(1, 4)
-            setForecast(threeDayForecast)
+      if (weather.coord) {
+        axios.get(forecastURL)
+          .then((response) => {
+              const threeDayForecast = response.data.daily.slice(1, 4)
+              setForecast(threeDayForecast)
           })
-        } catch (error) {
-          console.error("Error fetching forecast data:", error)
-        }
-      } else return
+          .catch (error => {
+            console.error("Error fetching forecast data:", error)
+        });
+      }
     };
     updateForecast();
-  }, [lat, lon]);
-    
+  }, [weather.coord, forecastURL]);
+
   return(
     <div className="weather-app">
       <div className="container">
-        <div className="searchbar">
-          <input 
+        <div className="search">
+          <div className="searchbar">
+            <input
+              key="input-field" 
               type="text"
               id="search-input" 
-              placeholder='search'
+              name="search-input"
+              placeholder='search au cities..'
               value={location}
-              onKeyDown={location ? handleEnter : null}
-              onChange={(e) => setLocation(e.target.value)} />
-          <button className="search-btn" onClick={location ? handleSearch : null}>
-            <i className="bi bi-search"></i>
-          </button>
+              onChange={(e) => setLocation(e.target.value)}
+              autoComplete='off'
+              />
+              {showBtn && <button 
+                className="search-btn" 
+                onClick={location ? handleSearch : null}
+              >
+                <i className="bi bi-search"></i>
+              </button>}
+          </div>
+          <div className="dropdown">
+            {data.filter(item => {
+              let searchTerm = location;
+              const fullName = item.city.toLowerCase();
+              return searchTerm && fullName.includes(searchTerm)
+            })
+              .map((item, i) => (
+                <div
+                  key={i}
+                  onClick={() => onClick(item.city, item.admin_name)}
+                  className='dropdown-row'>{`${item.city}, ${item.admin_name}`}</div>
+              ))}
+          </div>
         </div>
         <div className="location">
           <h2>{weather.name}</h2>
@@ -80,7 +112,7 @@ const App = () => {
               <h3 key={i}>
                 {new Date(data.dt * 1000).toLocaleDateString('en-AU', {weekday: 'long'})}
               </h3>
-              <p key="summary">
+              <p key={`${i}-1`}>
                 {`${Math.round(data.temp.day)}°C | ${data.weather[0].description}`}
               </p>
             </div>
