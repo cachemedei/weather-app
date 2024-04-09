@@ -109,22 +109,8 @@ p {
   box-shadow: 0 4px 10px white;
 }
 
-.search-btn {
-  padding: 9px 11px;
-  background-color: rgba(255, 255, 255, 0.3);
-  width: 10%;
-  cursor: pointer;
-  border: none;
-  font-size: 1rem;
-  border-radius: 10px;
-  margin-left: -43px;
-  transition: background-color 2s;
-}
-
-.search-btn:hover {
-  background-color: rgb(224, 222, 222);
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
+.loading {
+  margin: 5px auto;
 }
 
 .dropdown {

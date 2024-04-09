@@ -3,7 +3,6 @@ An app using the Current Weather Data API from OpenWeatherMap to show a user the
 
 # Notes & Plans
 - Find an API to access all AU suburbs for a wider search instead of the local file I'm currently using
-- Add a handler to the drop down menu so when an option is clicked the Search function will run
 
 # OpenWeatherMap
 - Current Weather Data docs: https://openweathermap.org/current
